@@ -25,6 +25,16 @@ pub trait Unit {
 	unsafe fn release(&'static self);
 }
 
+impl<T1: Unit> Unit for &T1 {
+	unsafe fn acquire(&'static self) {
+		T1::acquire(self);
+	}
+
+	unsafe fn release(&'static self) {
+		T1::release(self);
+	}
+}
+
 // =========================================================================
 
 pub struct ActorUnit<A1>

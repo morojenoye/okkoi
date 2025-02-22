@@ -14,6 +14,7 @@ where
 		f: extern "C" fn(*const ActorUnit<Self>),
 		s: &'static ActorUnit<Self>,
 	);
+	fn setup(&self) {}
 	fn start(&self);
 	fn abort(&self);
 }
@@ -76,15 +77,15 @@ where
 		}
 	}
 
-	fn running(&self) {
-		self.running.store(true, Ordering::Relaxed);
-	}
-
 	extern "C" fn start(s: *const Self) {
 		// SAFETY: Assuming Self::spawn called us with right pointer.
 		let this = unsafe { s.as_ref() }.expect("is not null");
-		// Set running and call start that user provided.
-		(this.running(), this.actor.start());
+		// Invoke setup before guard is released.
+		this.actor.setup();
+		// Set running flag to release guard.
+		this.running.store(true, Ordering::Relaxed);
+		// Call start that user provided.
+		this.actor.start();
 		// Check counter to know if return is intentional or not.
 		// We do not support non intentional exit yet so panic.
 		if this.count.load(Ordering::Relaxed) != 0 {

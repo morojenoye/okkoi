@@ -4,6 +4,9 @@ use core::{
 };
 use std::{sync::Mutex, thread};
 
+#[cfg(test)]
+mod check;
+
 // =========================================================================
 
 pub trait Actor
